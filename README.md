@@ -79,7 +79,7 @@ Python 3.x
 Clone the repository:
 
 ```bash
-git clone https://github.com/nikitasv457/SP_Stock_Classifier.git
+git clone https://github.com/Juan-jjv/sp-stock-classifier.git
 ```
 
 Install the required packages:
