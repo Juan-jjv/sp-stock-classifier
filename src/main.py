@@ -1,10 +1,12 @@
-import os
 import pandas as pd
 
 from config import (
     RAW_DATA_PATH,
     PROCESSED_DATA_PATH,
     RESULTS_PATH,
+    BACKTEST_PATH,
+    EQUITY_CURVE_PATH,
+    INITIAL_CAPITAL,
     BUY_THRESHOLD,
     SELL_THRESHOLD,
     LOOKAHEAD_DAYS,
@@ -17,6 +19,12 @@ from train_models import (
     split_time_series_data,
     train_models,
     evaluate_models
+)
+from backtest import (
+    convert_xgboost_predictions,
+    run_backtest,
+    calculate_backtest_metrics,
+    plot_equity_curve
 )
 
 
@@ -65,6 +73,34 @@ def main():
     print("\nModel results saved successfully.")
     print(f"Saved to: {RESULTS_PATH}")
     print(results_df)
+
+    print("\nRunning backtest using XGBoost...")
+
+    xgboost_model = models["XGBoost"]
+    xgboost_predictions_encoded = xgboost_model.predict(X_test)
+    xgboost_predictions = convert_xgboost_predictions(xgboost_predictions_encoded)
+
+    backtest_df = run_backtest(
+        test_df=test_df,
+        predictions=xgboost_predictions,
+        initial_capital=INITIAL_CAPITAL
+    )
+
+    backtest_df.to_csv(BACKTEST_PATH, index=False)
+
+    backtest_metrics = calculate_backtest_metrics(backtest_df)
+    backtest_metrics_df = pd.DataFrame([backtest_metrics])
+
+    print("\nBacktest results:")
+    print(backtest_metrics_df)
+
+    print("\nBacktest data saved successfully.")
+    print(f"Saved to: {BACKTEST_PATH}")
+
+    plot_equity_curve(backtest_df, EQUITY_CURVE_PATH)
+
+    print("\nEquity curve saved successfully.")
+    print(f"Saved to: {EQUITY_CURVE_PATH}")
 
 
 if __name__ == "__main__":
